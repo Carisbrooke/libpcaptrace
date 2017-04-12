@@ -887,6 +887,13 @@ pcap_lookupnet(device, netp, maskp, errbuf)
 	register struct sockaddr_in *sin4;
 	struct ifreq ifr;
 
+//repu1sion
+#ifdef PCAP_SUPPORT_LIBTRACE
+       if (!strncmp(device, "trace:", 6))
+               device += 6;
+#endif /* PCAP_SUPPORT_LIBTRACE */
+
+
 	/*
 	 * The pseudo-device "any" listens on all interfaces and therefore
 	 * has the network address and -mask "0.0.0.0" therefore catching

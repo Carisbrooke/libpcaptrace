@@ -1,0 +1,4 @@
+*.o
+*.sw?
+Session.vim
+cscope.out

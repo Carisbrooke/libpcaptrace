@@ -40,6 +40,11 @@
 extern "C" {
 #endif
 
+//repu1sion
+#ifdef PCAP_SUPPORT_LIBTRACE
+#include <libtrace.h>
+#endif
+
 #ifdef WIN32
 #include <Packet32.h>
 extern CRITICAL_SECTION g_PcapCompileCriticalSection;
@@ -107,6 +112,9 @@ extern CRITICAL_SECTION g_PcapCompileCriticalSection;
 
 struct pcap_opt {
 	char	*source;
+#ifdef PCAP_SUPPORT_LIBTRACE
+       char    *destination;
+#endif
 	int	timeout;	/* timeout for buffering */
 	int	buffer_size;
 	int	promisc;
@@ -133,6 +141,17 @@ typedef int	(*setmintocopy_op_t)(pcap_t *, int);
 typedef Adapter *(*getadapter_op_t)(pcap_t *);
 #endif
 typedef void	(*cleanup_op_t)(pcap_t *);
+
+
+//repu1sion
+#ifdef PCAP_SUPPORT_LIBTRACE
+struct pcap_libtrace {
+        libtrace_t *trace;
+        libtrace_packet_t *packet;
+        libtrace_out_t *trace_out;
+};
+#endif /* PCAP_SUPPORT_LIBTRACE */
+
 
 /*
  * We put all the stuff used in the read code path at the beginning,
