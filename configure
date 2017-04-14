@@ -660,6 +660,9 @@ AR
 RANLIB
 V_YACC
 V_LEX
+LIBTRACE_SRC
+PCAP_SUPPORT_LIBTRACE
+ODP_INCLS
 HAVE_LINUX_TPACKET_AUXDATA
 LIBOBJS
 EGREP
@@ -735,6 +738,7 @@ with_libnl
 enable_ipv6
 enable_optimizer_dbg
 enable_yydebug
+with_libtrace
 with_dag
 with_dag_includes
 with_dag_libraries
@@ -1403,6 +1407,7 @@ Optional Packages:
   --with-pcap=TYPE        use packet capture TYPE
   --without-libnl         disable libnl support [default=yes, on Linux, if
                           present]
+  --with-libtrace         include libtrace support
   --with-dag[=DIR]        include Endace DAG support ["yes", "no" or DIR;
                           default="yes" on BSD and Linux if present]
   --with-dag-includes=DIR Endace DAG include directory
@@ -4334,7 +4339,7 @@ else
     We can't simply define LARGE_OFF_T to be 9223372036854775807,
     since some C++ compilers masquerading as C compilers
     incorrectly reject 9223372036854775807.  */
-#define LARGE_OFF_T (((off_t) 1 << 62) - 1 + ((off_t) 1 << 62))
+#define LARGE_OFF_T ((((off_t) 1 << 31) << 31) - 1 + (((off_t) 1 << 31) << 31))
   int off_t_is_large[(LARGE_OFF_T % 2147483629 == 721
 		       && LARGE_OFF_T % 2147483647 == 1)
 		      ? 1 : -1];
@@ -4380,7 +4385,7 @@ else
     We can't simply define LARGE_OFF_T to be 9223372036854775807,
     since some C++ compilers masquerading as C compilers
     incorrectly reject 9223372036854775807.  */
-#define LARGE_OFF_T (((off_t) 1 << 62) - 1 + ((off_t) 1 << 62))
+#define LARGE_OFF_T ((((off_t) 1 << 31) << 31) - 1 + (((off_t) 1 << 31) << 31))
   int off_t_is_large[(LARGE_OFF_T % 2147483629 == 721
 		       && LARGE_OFF_T % 2147483647 == 1)
 		      ? 1 : -1];
@@ -4404,7 +4409,7 @@ rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
     We can't simply define LARGE_OFF_T to be 9223372036854775807,
     since some C++ compilers masquerading as C compilers
     incorrectly reject 9223372036854775807.  */
-#define LARGE_OFF_T (((off_t) 1 << 62) - 1 + ((off_t) 1 << 62))
+#define LARGE_OFF_T ((((off_t) 1 << 31) << 31) - 1 + (((off_t) 1 << 31) << 31))
   int off_t_is_large[(LARGE_OFF_T % 2147483629 == 721
 		       && LARGE_OFF_T % 2147483647 == 1)
 		      ? 1 : -1];
@@ -4449,7 +4454,7 @@ else
     We can't simply define LARGE_OFF_T to be 9223372036854775807,
     since some C++ compilers masquerading as C compilers
     incorrectly reject 9223372036854775807.  */
-#define LARGE_OFF_T (((off_t) 1 << 62) - 1 + ((off_t) 1 << 62))
+#define LARGE_OFF_T ((((off_t) 1 << 31) << 31) - 1 + (((off_t) 1 << 31) << 31))
   int off_t_is_large[(LARGE_OFF_T % 2147483629 == 721
 		       && LARGE_OFF_T % 2147483647 == 1)
 		      ? 1 : -1];
@@ -4473,7 +4478,7 @@ rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
     We can't simply define LARGE_OFF_T to be 9223372036854775807,
     since some C++ compilers masquerading as C compilers
     incorrectly reject 9223372036854775807.  */
-#define LARGE_OFF_T (((off_t) 1 << 62) - 1 + ((off_t) 1 << 62))
+#define LARGE_OFF_T ((((off_t) 1 << 31) << 31) - 1 + (((off_t) 1 << 31) << 31))
   int off_t_is_large[(LARGE_OFF_T % 2147483629 == 721
 		       && LARGE_OFF_T % 2147483647 == 1)
 		      ? 1 : -1];
@@ -6114,6 +6119,36 @@ $as_echo "#define YYDEBUG 1" >>confdefs.h
 fi
 { $as_echo "$as_me:${as_lineno-$LINENO}: result: ${enable_yydebug-no}" >&5
 $as_echo "${enable_yydebug-no}" >&6; }
+
+# Check for libtrace support.
+
+# Check whether --with-libtrace was given.
+if test "${with_libtrace+set}" = set; then :
+  withval=$with_libtrace;
+       if test ! "x$withval" = "xno" ; then
+               want_libtrace=yes
+       fi
+
+else
+
+       want_libtrace=no
+
+fi
+
+
+if test "$want_libtrace" = yes; then
+
+$as_echo "#define PCAP_SUPPORT_LIBTRACE 1" >>confdefs.h
+
+
+       LIBS="$LIBS -ltrace"
+       { $as_echo "$as_me:${as_lineno-$LINENO}: LIBTRACE is supported" >&5
+$as_echo "$as_me: LIBTRACE is supported" >&6;}
+
+
+       LIBTRACE_SRC="pcap-libtrace.c"
+fi
+
 
 # Check for Endace DAG card support.
 

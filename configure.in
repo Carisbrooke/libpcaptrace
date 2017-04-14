@@ -714,6 +714,28 @@ if test "$enable_yydebug" = "yes"; then
 fi
 AC_MSG_RESULT(${enable_yydebug-no})
 
+# Check for libtrace support.
+AC_ARG_WITH([libtrace],
+AC_HELP_STRING([--with-libtrace],[include libtrace support]),
+[
+       if test ! "x$withval" = "xno" ; then
+               want_libtrace=yes
+       fi
+],[
+       want_libtrace=no
+])
+
+if test "$want_libtrace" = yes; then
+       AC_DEFINE(PCAP_SUPPORT_LIBTRACE, 1, [target host supports libtrace])
+
+       LIBS="$LIBS -ltrace"
+       AC_MSG_NOTICE(LIBTRACE is supported)
+       AC_SUBST(ODP_INCLS)
+       AC_SUBST(PCAP_SUPPORT_LIBTRACE)
+       LIBTRACE_SRC="pcap-libtrace.c"
+fi
+AC_SUBST(LIBTRACE_SRC)
+
 # Check for Endace DAG card support.
 AC_ARG_WITH([dag],
 AC_HELP_STRING([--with-dag@<:@=DIR@:>@],[include Endace DAG support @<:@"yes", "no" or DIR; default="yes" on BSD and Linux if present@:>@]),
