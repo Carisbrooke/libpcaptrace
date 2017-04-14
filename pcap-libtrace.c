@@ -4,7 +4,42 @@
 #include "config.h"
 #endif
 
+#include <stdlib.h>
+#include <errno.h>
+#include <pcap/pcap.h>
+#include "pcap-int.h"
 #include <libtrace.h>
+
+
+//I would just leave it here (copy of internal struct in pcap-linux.c)
+struct pcap_linux {
+        u_int   packets_read;   /* count of packets read with recvfrom() */
+        long    proc_dropped;   /* packets reported dropped by /proc/net/dev */
+        struct pcap_stat stat;
+
+        char    *device;        /* device name */
+        int     filter_in_userland; /* must filter in userland */
+        int     blocks_to_filter_in_userland;
+        int     must_do_on_close; /* stuff we must do when we close */
+        int     timeout;        /* timeout for buffering */
+        int     sock_packet;    /* using Linux 2.0 compatible interface */
+        int     cooked;         /* using SOCK_DGRAM rather than SOCK_RAW */
+        int     ifindex;        /* interface index of device we're bound to */
+        int     lo_ifindex;     /* interface index of the loopback device */
+        bpf_u_int32 oldmode;    /* mode to restore when turning monitor mode off */
+        char    *mondevice;     /* mac80211 monitor device we created */
+        u_char  *mmapbuf;       /* memory-mapped region pointer */
+        size_t  mmapbuflen;     /* size of region */
+        int     vlan_offset;    /* offset at which to insert vlan tags; if -1, don't insert */
+        u_int   tp_version;     /* version of tpacket_hdr for mmaped ring */
+        u_int   tp_hdrlen;      /* hdrlen of tpacket_hdr for mmaped ring */
+        u_char  *oneshot_buffer; /* buffer for copy of packet */
+#ifdef HAVE_TPACKET3
+        unsigned char *current_packet; /* Current packet within the TPACKET_V3 block. Move to next block if NULL. */
+        int packets_left; /* Unhandled packets left within the block from previous call to pcap_read_linux_mmap_v3 in case of TPACKET_V3. */
+#endif
+};
+
 
 //METHODS FROM LIBPCAP (function pointers inside struct pcap) - SHOULD BE 12.
 #if 0
@@ -68,11 +103,17 @@ static int pcap_set_datalink_libtrace(pcap_t *handle, int dlt)
 //#5. pcap_getnonblock_fd
 
 //#6. pcap_cleanup_libtrace
+struct pcap_libtrace {
+        libtrace_t *trace;
+        libtrace_packet_t *packet;
+        libtrace_out_t *trace_out;
+};
+
 static void pcap_cleanup_libtrace(pcap_t *handle)
 {
         debug("[%s() start]\n", __func__);
 
-        struct pcap_libtrace *p = handle->priv;
+        struct pcap_libtrace *p = (struct pcap_libtrace *)handle->priv;
 
         if (p->packet)
                 trace_destroy_packet(p->packet);
@@ -153,12 +194,12 @@ static int pcap_setfilter_libtrace(pcap_t *handle, struct bpf_program *filter)
 }
 
 //#9. pcap_stats
-static int pcap_stats(pcap_t *p, struct pcap_stat *ps)
+int pcap_stats_libtrace(pcap_t *handle, struct pcap_stat *ps)
 {
         debug("[%s() start]\n", __func__);
 
         int rv = 0;
-
+	struct pcap_libtrace *p = handle->priv;
         libtrace_stat_t *stat;
 
         stat = trace_get_statistics(p->trace, NULL);
@@ -180,16 +221,22 @@ static int pcap_activate_libtrace(pcap_t *handle)
          * that we're going to read from the trace. We store all packets here
          * alloc memory for packet and clear its fields */
 
+	int rv;
+	struct pcap_libtrace *p = handle->priv;
+	const char *device;
+
+	device = handle->opt.source;
+
 	//priv is a void* ptr which points to our struct pcap_libtrace
-        handle->priv->packet = trace_create_packet();
-        if (!handle->priv->packet)
+        p->packet = trace_create_packet();
+        if (!p->packet)
         {
                 printf("failed to create packet (storage)\n");
                 return -1;
         }
 
-        handle->priv->trace = trace_create(source);
-        if (!handle->priv->trace)
+        p->trace = trace_create(device);
+        if (!p->trace)
         {
                 printf("failed to create trace\n");
                 return -1;
@@ -210,30 +257,27 @@ static int pcap_activate_libtrace(pcap_t *handle)
 
 	//check this later
 
-        if (handle->opt.buffer_size != 0) {
-                /*
-                 * Set the socket buffer size to the specified value.
-                 */
-                if (setsockopt(handle->fd, SOL_SOCKET, SO_RCVBUF,
-                               &handle->opt.buffer_size,
-                    sizeof(handle->opt.buffer_size)) == -1) {
-                        snprintf(handle->errbuf, PCAP_ERRBUF_SIZE,
-                                 "SO_RCVBUF: %s", pcap_strerror(errno));
-                        status = PCAP_ERROR;
-                        goto fail;
+        if (handle->opt.buffer_size != 0) 
+	{
+                //set the socket buffer size to the specified value.
+                if (setsockopt(handle->fd, SOL_SOCKET, SO_RCVBUF, &handle->opt.buffer_size,
+                    sizeof(handle->opt.buffer_size)) == -1) 
+		{
+                        snprintf(handle->errbuf, PCAP_ERRBUF_SIZE, "SO_RCVBUF: %s", pcap_strerror(errno));
+                        rv = PCAP_ERROR;
+			return rv;
                 }
         }
 
         handle->buffer = malloc(handle->bufsize + handle->offset);
-        if (!handle->buffer) {
-                snprintf(handle->errbuf, PCAP_ERRBUF_SIZE,
-                         "malloc: %s", pcap_strerror(errno));
-                status = PCAP_ERROR;
-                goto fail;
+        if (!handle->buffer) 
+	{
+                snprintf(handle->errbuf, PCAP_ERRBUF_SIZE, "malloc: %s", pcap_strerror(errno));
+                rv = PCAP_ERROR;
+		return rv;
         }
 
         handle->selectable_fd = handle->fd;
-
 }
 
 pcap_t* libtrace_create(const char *device, char *ebuf, int *is_ours)
@@ -250,14 +294,12 @@ pcap_t* libtrace_create(const char *device, char *ebuf, int *is_ours)
                 handle = pcap_create_common((device + 6), ebuf, 0); 
                 handle->selectable_fd = -1;
                 ptrace = handle->priv;
-                //ptrace->is_netmap = false;	//XXX - not sure we need it
         } 
 	else 
 	{
                 handle = pcap_create_common(device, ebuf, sizeof(struct pcap_linux));
                 handle->selectable_fd = -1;
                 ptrace = handle->priv;
-                //ptrace->is_netmap = false;	//XXX - not sure we need it
         }
         if (handle == NULL)
                 return NULL;

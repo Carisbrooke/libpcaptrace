@@ -143,7 +143,7 @@ typedef Adapter *(*getadapter_op_t)(pcap_t *);
 typedef void	(*cleanup_op_t)(pcap_t *);
 
 
-//repu1sion
+//repu1sion XXX - we have it declared inside pcap-libtrace.c, get rid of it?
 #ifdef PCAP_SUPPORT_LIBTRACE
 struct pcap_libtrace {
         libtrace_t *trace;
