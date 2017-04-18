@@ -10,6 +10,13 @@
 #include "pcap-int.h"
 #include <libtrace.h>
 
+#define DEBUG
+
+#ifdef DEBUG
+ #define debug(x...) printf(x)
+#else
+ #define debug(x...)
+#endif
 
 //I would just leave it here (copy of internal struct in pcap-linux.c)
 struct pcap_linux {
