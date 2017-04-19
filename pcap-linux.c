@@ -5868,6 +5868,8 @@ iface_ethtool_get_ts_info(pcap_t *handle, char *ebuf)
 	memset(&info, 0, sizeof(info));
 	info.cmd = ETHTOOL_GET_TS_INFO;
 	ifr.ifr_data = (caddr_t)&info;
+
+#if 0
 	if (ioctl(fd, SIOCETHTOOL, &ifr) == -1) {
 		close(fd);
 		if (errno == EOPNOTSUPP || errno == EINVAL) {
@@ -5883,6 +5885,8 @@ iface_ethtool_get_ts_info(pcap_t *handle, char *ebuf)
 		    strerror(errno));
 		return -1;
 	}
+#endif
+
 	close(fd);
 
 	num_ts_types = 0;

@@ -314,9 +314,7 @@ struct capture_source_type {
 	int (*findalldevs_op)(pcap_if_t **, char *);
 	pcap_t *(*create_op)(const char *, char *, int *);
 } capture_source_types[] = {
-#ifdef PCAP_SUPPORT_LIBTRACE
         { NULL, libtrace_create },
-#endif
 #ifdef HAVE_DAG_API
 	{ dag_findalldevs, dag_create },
 #endif
@@ -541,39 +539,48 @@ pcap_t* pcap_create_common(const char *source, char *ebuf, size_t size)
         if (p == NULL)
                 return (NULL);
 
-#ifdef PCAP_SUPPORT_LIBTRACE
-        if (strstr(source, ",")) {
-                char *delim = ",";
+//#ifdef PCAP_SUPPORT_LIBTRACE
+
+	debug("[%s() start]\n", __func__);
+
+	//03:00.0 we have in source as device name
+        if (strstr(source, ":")) 
+	{
+		debug("[%s() ] found delim\n", __func__);
+        	char *delim = ":";
                 p = pcap_alloc_pcap_t(ebuf, size + sizeof(struct pcap_libtrace));
                 if (p == NULL)
                         return (NULL);
 
-                p->opt.source = strdup(strtok((char *) source, delim));
+                p->opt.source = strdup(source);
                 if (p->opt.source == NULL) {
                         snprintf(ebuf, PCAP_ERRBUF_SIZE, "malloc: %s",
                                         pcap_strerror(errno));
                         free(p);
                         return (NULL);
                 }
-                p->opt.destination = strdup(strtok(NULL, delim));
+		//XXX - dunno do we use it or not
+                p->opt.destination = strdup(source);
                 if (p->opt.destination == NULL) {
                         snprintf(ebuf, PCAP_ERRBUF_SIZE, "malloc: %s",
                         pcap_strerror(errno));
                         free(p);
                         return (NULL);
                 }
-        } else {
-#endif
+        }
+	else 
+	{
+//#endif
                 p->opt.source = strdup(source);
-                if (p->opt.source == NULL) {
-                        snprintf(ebuf, PCAP_ERRBUF_SIZE, "malloc: %s",
-                        pcap_strerror(errno));
+                if (p->opt.source == NULL) 
+		{
+                        snprintf(ebuf, PCAP_ERRBUF_SIZE, "malloc: %s", pcap_strerror(errno));
                         free(p);
                         return (NULL);
                 }
-#ifdef PCAP_SUPPORT_ODP
+//#ifdef PCAP_SUPPORT_LIBTRACE
         }
-#endif
+//#endif
         /*
          * Default to "can't set rfmon mode"; if it's supported by
          * a platform, the create routine that called us can set
@@ -598,6 +605,8 @@ pcap_t* pcap_create_common(const char *source, char *ebuf, size_t size)
          * Start out with no BPF code generation flags set.
          */
         p->bpf_codegen_flags = 0;
+
+	debug("[%s() end] p: %p\n", __func__, p);
 
         return (p);
 }
@@ -757,6 +766,7 @@ pcap_get_tstamp_precision(pcap_t *p)
 int
 pcap_activate(pcap_t *p)
 {
+	debug("[%s() start]\n", __func__);
 	int status;
 
 	/*
@@ -768,7 +778,9 @@ pcap_activate(pcap_t *p)
 	 */
 	if (pcap_check_activated(p))
 		return (PCAP_ERROR_ACTIVATED);
+	debug("[%s() start] 1\n", __func__);
 	status = p->activate_op(p);
+	debug("[%s() start] 2\n", __func__);
 	if (status >= 0)
 		p->activated = 1;
 	else {
@@ -1657,8 +1669,7 @@ pcap_stats(pcap_t *p, struct pcap_stat *ps)
 	return (p->stats_op(p, ps));
 }
 
-static int
-pcap_stats_dead(pcap_t *p, struct pcap_stat *ps _U_)
+int pcap_stats_dead(pcap_t *p, struct pcap_stat *ps _U_)
 {
 	snprintf(p->errbuf, PCAP_ERRBUF_SIZE,
 	    "Statistics aren't available from a pcap_open_dead pcap_t");
@@ -1740,8 +1751,7 @@ static struct pcap *pcaps_to_close;
  */
 static int did_atexit;
 
-static void
-pcap_close_all(void)
+void pcap_close_all(void)
 {
 	struct pcap *handle;
 
@@ -1836,8 +1846,7 @@ pcap_cleanup_live_common(pcap_t *p)
 #endif
 }
 
-static void
-pcap_cleanup_dead(pcap_t *p _U_)
+void pcap_cleanup_dead(pcap_t *p _U_)
 {
 	/* Nothing to do. */
 }

@@ -10,14 +10,6 @@
 #include "pcap-int.h"
 #include <libtrace.h>
 
-#define DEBUG
-
-#ifdef DEBUG
- #define debug(x...) printf(x)
-#else
- #define debug(x...)
-#endif
-
 //I would just leave it here (copy of internal struct in pcap-linux.c)
 struct pcap_linux {
         u_int   packets_read;   /* count of packets read with recvfrom() */
@@ -81,6 +73,8 @@ static int pcap_inject_libtrace(pcap_t *handle, const void *buf, size_t size)
  * single device? IN, OUT or both? */
 static int pcap_setdirection_libtrace(pcap_t *handle, pcap_direction_t d)
 {
+	debug("[%s() start]\n", __func__);
+
 #ifdef HAVE_PF_PACKET_SOCKETS //XXX - where is it defined?
         struct pcap_linux *handlep = handle->priv;
 
@@ -110,11 +104,13 @@ static int pcap_set_datalink_libtrace(pcap_t *handle, int dlt)
 //#5. pcap_getnonblock_fd
 
 //#6. pcap_cleanup_libtrace
+#if 0
 struct pcap_libtrace {
         libtrace_t *trace;
         libtrace_packet_t *packet;
         libtrace_out_t *trace_out;
 };
+#endif
 
 static void pcap_cleanup_libtrace(pcap_t *handle)
 {
@@ -222,17 +218,20 @@ int pcap_stats_libtrace(pcap_t *handle, struct pcap_stat *ps)
         return rv;
 }
 
-static int pcap_activate_libtrace(pcap_t *handle)
+int pcap_activate_libtrace(pcap_t *handle)
 {
         /* Creating and initialising a packet structure to store the packets
          * that we're going to read from the trace. We store all packets here
          * alloc memory for packet and clear its fields */
 
-	int rv;
+	int rv = 0;
 	struct pcap_libtrace *p = handle->priv;
 	const char *device;
 
+	//XXX - strcat here to get "odp:03:00.0"
 	device = handle->opt.source;
+
+	debug("[%s() ] p: %p\n", __func__, p);
 
 	//priv is a void* ptr which points to our struct pcap_libtrace
         p->packet = trace_create_packet();
@@ -242,6 +241,7 @@ static int pcap_activate_libtrace(pcap_t *handle)
                 return -1;
         }
 
+	debug("[%s() ] creating trace for device: %s\n", __func__, device);
         p->trace = trace_create(device);
         if (!p->trace)
         {
@@ -249,7 +249,7 @@ static int pcap_activate_libtrace(pcap_t *handle)
                 return -1;
         }
         else
-                printf("trace created successfully\n");
+                printf("[%s()]trace created successfully\n",__func__);
 
 	//setting functions
         handle->inject_op = pcap_inject_libtrace;
@@ -263,7 +263,6 @@ static int pcap_activate_libtrace(pcap_t *handle)
         handle->stats_op = pcap_stats_libtrace;
 
 	//check this later
-
         if (handle->opt.buffer_size != 0) 
 	{
                 //set the socket buffer size to the specified value.
@@ -285,6 +284,8 @@ static int pcap_activate_libtrace(pcap_t *handle)
         }
 
         handle->selectable_fd = handle->fd;
+
+	return rv;
 }
 
 pcap_t* libtrace_create(const char *device, char *ebuf, int *is_ours)
@@ -292,13 +293,17 @@ pcap_t* libtrace_create(const char *device, char *ebuf, int *is_ours)
         pcap_t *handle;
         struct pcap_libtrace *ptrace;
 
-        *is_ours = (!strncmp(device, "trace:", 6));
+	debug("[%s() start], device: %s\n", __func__, device);
+
+        *is_ours = (!strncmp(device, "odp:", 4));
         if (! *is_ours)
                 return NULL;
 
-        if (!strncmp(device, "trace:", 6)) 
+	//odp:03:00.0 in device
+        if (!strncmp(device, "odp:", 4)) 
 	{	//we alloc auto space for pcap_t and pcap_libtrace so lets try with 0 here.
-                handle = pcap_create_common((device + 6), ebuf, 0); 
+		debug("got odp:device \n");
+                handle = pcap_create_common((device), ebuf, 0); 
                 handle->selectable_fd = -1;
                 ptrace = handle->priv;
         } 
@@ -314,5 +319,3 @@ pcap_t* libtrace_create(const char *device, char *ebuf, int *is_ours)
         handle->activate_op = pcap_activate_libtrace;
         return (handle);
 }
-
-

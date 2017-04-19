@@ -40,9 +40,21 @@
 extern "C" {
 #endif
 
+
+//HACK
+#define PCAP_SUPPORT_LIBTRACE 
+
 //repu1sion
 #ifdef PCAP_SUPPORT_LIBTRACE
 #include <libtrace.h>
+#endif
+
+#define DEBUG
+
+#ifdef DEBUG
+ #define debug(x...) printf(x)
+#else
+ #define debug(x...)
 #endif
 
 #ifdef WIN32
@@ -112,9 +124,9 @@ extern CRITICAL_SECTION g_PcapCompileCriticalSection;
 
 struct pcap_opt {
 	char	*source;
-#ifdef PCAP_SUPPORT_LIBTRACE
+//#ifdef PCAP_SUPPORT_LIBTRACE
        char    *destination;
-#endif
+//#endif
 	int	timeout;	/* timeout for buffering */
 	int	buffer_size;
 	int	promisc;
@@ -474,6 +486,11 @@ char	*pcap_win32strerror(void);
 int	install_bpf_program(pcap_t *, struct bpf_program *);
 
 int	pcap_strcasecmp(const char *, const char *);
+
+#ifdef PCAP_SUPPORT_LIBTRACE
+	pcap_t* libtrace_create(const char *, char *, int *);
+#endif
+
 
 #ifdef __cplusplus
 }
