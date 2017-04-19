@@ -228,7 +228,7 @@ int pcap_activate_libtrace(pcap_t *handle)
 	struct pcap_libtrace *p = handle->priv;
 	const char *device;
 
-	//XXX - strcat here to get "odp:03:00.0"
+	//have "odp:03:00.0"
 	device = handle->opt.source;
 
 	debug("[%s() ] p: %p\n", __func__, p);
@@ -284,6 +284,9 @@ int pcap_activate_libtrace(pcap_t *handle)
         }
 
         handle->selectable_fd = handle->fd;
+
+	//here we start
+	rv = trace_start(p->trace);
 
 	return rv;
 }
