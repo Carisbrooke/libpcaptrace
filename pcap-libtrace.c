@@ -262,6 +262,7 @@ int pcap_activate_libtrace(pcap_t *handle)
         handle->setfilter_op = pcap_setfilter_libtrace;
         handle->stats_op = pcap_stats_libtrace;
 
+#if 0
 	//check this later
         if (handle->opt.buffer_size != 0) 
 	{
@@ -274,6 +275,7 @@ int pcap_activate_libtrace(pcap_t *handle)
 			return rv;
                 }
         }
+#endif
 
         handle->buffer = malloc(handle->bufsize + handle->offset);
         if (!handle->buffer) 

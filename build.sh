@@ -1,3 +1,4 @@
 #!/bin/bash
 
-make clean && ./configure --with-libtrace && make
+make clean
+./configure --with-libtrace && make
