@@ -291,7 +291,7 @@ int pcap_activate_libtrace(pcap_t *handle)
 	debug("[%s() ] starting trace for device: %s\n", __func__, device);
 	rv = trace_start(p->trace);
 
-	debug("[%s() ] exit with status: $d\n", __func__, rv);
+	debug("[%s() ] exit with status: %d\n", __func__, rv);
 
 	return rv;
 }
