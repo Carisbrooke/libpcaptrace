@@ -359,6 +359,8 @@ pcap_findalldevs(pcap_if_t **alldevsp, char *errbuf)
 {
 	size_t i;
 
+	debug("[%s() start] \n", __func__);
+
 	/*
 	 * Get the list of regular interfaces first.
 	 */
@@ -398,6 +400,8 @@ pcap_findalldevs(pcap_if_t **alldevsp, char *errbuf)
 			return (-1);
 		}
 	}
+
+	debug("[%s() end] \n", __func__);
 
 	return (0);
 }

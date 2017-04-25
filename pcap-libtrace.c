@@ -231,7 +231,7 @@ int pcap_activate_libtrace(pcap_t *handle)
 	//have "odp:03:00.0"
 	device = handle->opt.source;
 
-	debug("[%s() ] p: %p\n", __func__, p);
+	debug("[%s() start] p: %p\n", __func__, p);
 
 	//priv is a void* ptr which points to our struct pcap_libtrace
         p->packet = trace_create_packet();
@@ -291,14 +291,14 @@ int pcap_activate_libtrace(pcap_t *handle)
 	debug("[%s() ] starting trace for device: %s\n", __func__, device);
 	rv = trace_start(p->trace);
 
-	debug("[%s() ] exit with status: %d\n", __func__, rv);
+	debug("[%s() end] exit with status: %d\n", __func__, rv);
 
 	return rv;
 }
 
 pcap_t* libtrace_create(const char *device, char *ebuf, int *is_ours)
 {
-        pcap_t *handle;
+        pcap_t *handle = NULL;
         struct pcap_libtrace *ptrace;
 
 	debug("[%s() start], device: %s\n", __func__, device);
@@ -325,5 +325,8 @@ pcap_t* libtrace_create(const char *device, char *ebuf, int *is_ours)
                 return NULL;
 
         handle->activate_op = pcap_activate_libtrace;
+
+	debug("[%s() end], handle: %p\n", __func__, handle);
+
         return (handle);
 }
