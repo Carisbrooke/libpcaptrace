@@ -224,9 +224,15 @@ int pcap_activate_libtrace(pcap_t *handle)
          * that we're going to read from the trace. We store all packets here
          * alloc memory for packet and clear its fields */
 
+	static int activated = 0;
 	int rv = 0;
 	struct pcap_libtrace *p = handle->priv;
 	const char *device;
+
+	if (activated)
+		return rv;
+	else
+		activated = 1;
 
 	//have "odp:03:00.0"
 	//HACK
