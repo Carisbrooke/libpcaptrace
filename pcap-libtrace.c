@@ -215,7 +215,7 @@ int pcap_stats_libtrace(pcap_t *handle, struct pcap_stat *ps)
                 ps->ps_ifdrop = (unsigned int)(stat->filtered); //filtered out
 
 #ifdef VERBOSE_STATS
-		printf("received: %u, dropped: %u, filtered: %u \n", ps.ps_recv, ps.ps_drop, ps.ps_ifdrop);
+		printf("received: %u, dropped: %u, filtered: %u \n", ps->ps_recv, ps->ps_drop, ps->ps_ifdrop);
 #endif
         }
         else
