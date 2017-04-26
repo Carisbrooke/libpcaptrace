@@ -548,7 +548,7 @@ pcap_t* pcap_create_common(const char *source, char *ebuf, size_t size)
 	debug("[%s() start] %s \n", __func__, source);
 
 	//03:00.0 we have in source as device name
-        if (strstr(source, ":")) 
+        if (strstr(source, "en")) 
 	{
 		debug("[%s() ] found delim\n", __func__);
         	//char *delim = ":";
