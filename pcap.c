@@ -538,6 +538,7 @@ pcap_alloc_pcap_t(char *ebuf, size_t size)
 pcap_t* pcap_create_common(const char *source, char *ebuf, size_t size)
 {
         pcap_t *p;
+	char *delim = "en";
 
         p = pcap_alloc_pcap_t(ebuf, size);
         if (p == NULL)
@@ -548,10 +549,9 @@ pcap_t* pcap_create_common(const char *source, char *ebuf, size_t size)
 	debug("[%s() start] %s \n", __func__, source);
 
 	//03:00.0 we have in source as device name
-        if (strstr(source, "en")) 
+        if (strstr(source, delim)) 
 	{
-		debug("[%s() ] found delim\n", __func__);
-        	//char *delim = ":";
+		debug("[%s() ] found delim %s\n", __func__, delim);
                 p = pcap_alloc_pcap_t(ebuf, size + sizeof(struct pcap_libtrace));
                 if (p == NULL)
                         return (NULL);
@@ -576,6 +576,7 @@ pcap_t* pcap_create_common(const char *source, char *ebuf, size_t size)
         }
 	else 
 	{
+		debug("[%s() ] NOT found delim %s\n", __func__, delim);
 //#endif
                 p->opt.source = strdup(source);
                 if (p->opt.source == NULL) 
