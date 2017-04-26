@@ -545,7 +545,7 @@ pcap_t* pcap_create_common(const char *source, char *ebuf, size_t size)
 
 //#ifdef PCAP_SUPPORT_LIBTRACE
 
-	debug("[%s() start]\n", __func__);
+	debug("[%s() start] %s \n", __func__, source);
 
 	//03:00.0 we have in source as device name
         if (strstr(source, ":")) 
@@ -556,14 +556,16 @@ pcap_t* pcap_create_common(const char *source, char *ebuf, size_t size)
                 if (p == NULL)
                         return (NULL);
 
-                p->opt.source = strdup(source);
+		//HACK: enp3so
+ 	        p->opt.source = strdup("enp3s0");
+ 	        //p->opt.source = strdup(source);
                 if (p->opt.source == NULL) {
                         snprintf(ebuf, PCAP_ERRBUF_SIZE, "malloc: %s",
                                         pcap_strerror(errno));
                         free(p);
                         return (NULL);
                 }
-		//XXX - dunno do we use it or not
+		//let's store odp part here
                 p->opt.destination = strdup(source);
                 if (p->opt.destination == NULL) {
                         snprintf(ebuf, PCAP_ERRBUF_SIZE, "malloc: %s",

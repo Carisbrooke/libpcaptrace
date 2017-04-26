@@ -887,6 +887,8 @@ pcap_lookupnet(device, netp, maskp, errbuf)
 	register struct sockaddr_in *sin4;
 	struct ifreq ifr;
 
+	debug("[%s() start], device: %s\n", __func__, device);
+
 //repu1sion
 #ifdef PCAP_SUPPORT_LIBTRACE
        if (!strncmp(device, "trace:", 6))

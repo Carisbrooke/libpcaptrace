@@ -229,7 +229,8 @@ int pcap_activate_libtrace(pcap_t *handle)
 	const char *device;
 
 	//have "odp:03:00.0"
-	device = handle->opt.source;
+	//HACK
+	device = handle->opt.destination;
 
 	debug("[%s() start] p: %p\n", __func__, p);
 
