@@ -551,7 +551,7 @@ pcap_t* pcap_create_common(const char *source, char *ebuf, size_t size)
         if (strstr(source, ":")) 
 	{
 		debug("[%s() ] found delim\n", __func__);
-        	char *delim = ":";
+        	//char *delim = ":";
                 p = pcap_alloc_pcap_t(ebuf, size + sizeof(struct pcap_libtrace));
                 if (p == NULL)
                         return (NULL);
@@ -566,7 +566,7 @@ pcap_t* pcap_create_common(const char *source, char *ebuf, size_t size)
                         return (NULL);
                 }
 		//let's store odp part here
-                p->opt.destination = strdup(source);
+                p->opt.destination = strdup("odp:03:00.0");
                 if (p->opt.destination == NULL) {
                         snprintf(ebuf, PCAP_ERRBUF_SIZE, "malloc: %s",
                         pcap_strerror(errno));

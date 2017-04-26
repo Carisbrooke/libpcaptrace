@@ -304,12 +304,12 @@ pcap_t* libtrace_create(const char *device, char *ebuf, int *is_ours)
 
 	debug("[%s() start], device: %s\n", __func__, device);
 
-        *is_ours = (!strncmp(device, "odp:", 4));
+        *is_ours = (!strncmp(device, "enp3s0", 6));
         if (! *is_ours)
                 return NULL;
 
 	//odp:03:00.0 in device
-        if (!strncmp(device, "odp:", 4)) 
+        if (!strncmp(device, "enp3s0:", 6)) 
 	{	//we alloc auto space for pcap_t and pcap_libtrace so lets try with 0 here.
 		debug("got odp:device \n");
                 handle = pcap_create_common((device), ebuf, 0); 
