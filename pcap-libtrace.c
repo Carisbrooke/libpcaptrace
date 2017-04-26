@@ -196,6 +196,8 @@ static int pcap_setfilter_libtrace(pcap_t *handle, struct bpf_program *filter)
         return 0;
 }
 
+#define VERBOSE_STATS
+
 //#9. pcap_stats
 int pcap_stats_libtrace(pcap_t *handle, struct pcap_stat *ps)
 {
@@ -211,6 +213,10 @@ int pcap_stats_libtrace(pcap_t *handle, struct pcap_stat *ps)
                 ps->ps_recv = (unsigned int)(stat->received);
                 ps->ps_drop = (unsigned int)(stat->dropped);
                 ps->ps_ifdrop = (unsigned int)(stat->filtered); //filtered out
+
+#ifdef VERBOSE_STATS
+		printf("received: %u, dropped: %u, filtered: %u \n", ps.ps_recv, ps.ps_drop, ps.ps_ifdrop);
+#endif
         }
         else
                 rv = -1;
