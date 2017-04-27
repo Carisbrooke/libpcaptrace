@@ -127,6 +127,36 @@ static void pcap_cleanup_libtrace(pcap_t *handle)
 	pcap_cleanup_live_common(handle);
 }
 
+
+void hexdump(void *addr, unsigned int size)
+{
+        unsigned int i;
+        /* move with 1 byte step */
+        unsigned char *p = (unsigned char*)addr;
+
+        //printf("addr : %p \n", addr);
+
+        if (!size)
+        {
+                printf("bad size %u\n",size);
+                return;
+        }
+
+        for (i = 0; i < size; i++)
+        {
+                if (!(i % 16))    /* 16 bytes on line */
+                {
+                        if (i)
+                                printf("\n");
+                        printf("0x%lX | ", (long unsigned int)(p+i)); /* print addr at the line begin */
+                }
+                printf("%02X ", p[i]); /* space here */
+        }
+
+        printf("\n");
+}
+
+
 //#7. read - this should work instead of pcap_dispatch()
 //pcap_dispatch() processes packets from a live capture or ``savefile'' until cnt packets are processed,  the
 //end  of  the current bufferful of packets is reached when doing a live capture, the end of the ``savefile''
@@ -162,6 +192,7 @@ static int pcap_read_libtrace(pcap_t *handle, int max_packets, pcap_handler call
 		else
 		{
 			printf("have a packet %d bytes \n", rv);
+			hexdump(p->packet, rv);
 			/* fill out pcap_header */
 			gettimeofday(&ts, NULL);
 			pcap_header.ts = ts;
