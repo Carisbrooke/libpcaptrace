@@ -161,7 +161,7 @@ static int pcap_read_libtrace(pcap_t *handle, int max_packets, pcap_handler call
 		}
 		else
 		{
-			printf("have a packet! \n");
+			printf("have a packet %d bytes \n", rv);
 			/* fill out pcap_header */
 			gettimeofday(&ts, NULL);
 			pcap_header.ts = ts;
