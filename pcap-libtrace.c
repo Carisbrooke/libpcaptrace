@@ -142,7 +142,7 @@ static int pcap_read_libtrace(pcap_t *handle, int max_packets, pcap_handler call
 	long n = 1;
 	int processed_packets = 0;
 
-        debug("[%s() start]\n", __func__);
+        debug("[%s() start] max_packets: %d \n", __func__, max_packets);
 
         for (n = 1; (n <= max_packets) || (max_packets < 0); n++) 
 	{
@@ -161,6 +161,7 @@ static int pcap_read_libtrace(pcap_t *handle, int max_packets, pcap_handler call
 		}
 		else
 		{
+			printf("have a packet! \n");
 			/* fill out pcap_header */
 			gettimeofday(&ts, NULL);
 			pcap_header.ts = ts;
@@ -185,6 +186,7 @@ static int pcap_read_libtrace(pcap_t *handle, int max_packets, pcap_handler call
 		}
 	}
 
+        debug("[%s() exit] processed_packets: %d \n", __func__, processed_packets);
 	return processed_packets;
 }
 
@@ -235,6 +237,8 @@ int pcap_activate_libtrace(pcap_t *handle)
 	struct pcap_libtrace *p = handle->priv;
 	const char *device;
 
+	debug("[%s() start] activated: %d\n", __func__, activated);
+
 	if (activated)
 		return rv;
 	else
@@ -244,7 +248,6 @@ int pcap_activate_libtrace(pcap_t *handle)
 	//HACK
 	device = handle->opt.destination;
 
-	debug("[%s() start] p: %p\n", __func__, p);
 
 	//priv is a void* ptr which points to our struct pcap_libtrace
         p->packet = trace_create_packet();
@@ -316,6 +319,7 @@ pcap_t* libtrace_create(const char *device, char *ebuf, int *is_ours)
 
 	debug("[%s() start], device: %s\n", __func__, device);
 
+	//XXX - hack, hardcode
         *is_ours = (!strncmp(device, "enp3s0", 6));
         if (! *is_ours)
                 return NULL;
