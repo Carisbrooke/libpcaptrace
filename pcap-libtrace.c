@@ -192,7 +192,7 @@ static int pcap_read_libtrace(pcap_t *handle, int max_packets, pcap_handler call
 		else
 		{
 			printf("have a packet %d bytes \n", rv);
-			hexdump(p->packet, rv);
+			hexdump(p->packet->payload, rv);
 			/* fill out pcap_header */
 			gettimeofday(&ts, NULL);
 			pcap_header.ts = ts;
