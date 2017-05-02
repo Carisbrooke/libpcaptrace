@@ -10,6 +10,11 @@
 #include "pcap-int.h"
 #include <libtrace.h>
 
+
+//#define OPTION_HEXDUMP_PACKETS
+
+
+
 //I would just leave it here (copy of internal struct in pcap-linux.c)
 struct pcap_linux {
         u_int   packets_read;   /* count of packets read with recvfrom() */
@@ -127,7 +132,7 @@ static void pcap_cleanup_libtrace(pcap_t *handle)
 	pcap_cleanup_live_common(handle);
 }
 
-
+#ifdef OPTION_HEXDUMP_PACKETS
 void hexdump(void *addr, unsigned int size)
 {
         unsigned int i;
@@ -155,6 +160,7 @@ void hexdump(void *addr, unsigned int size)
 
         printf("\n");
 }
+#endif
 
 
 //#7. read - this should work instead of pcap_dispatch()
@@ -191,8 +197,10 @@ static int pcap_read_libtrace(pcap_t *handle, int max_packets, pcap_handler call
 		}
 		else
 		{
+#ifdef OPTION_HEXDUMP_PACKETS
 			printf("have a packet %d bytes \n", rv);
 			hexdump(p->packet->payload, rv);
+#endif
 			/* fill out pcap_header */
 			gettimeofday(&ts, NULL);
 			pcap_header.ts = ts;
