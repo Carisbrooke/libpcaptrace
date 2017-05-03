@@ -11,6 +11,7 @@
 #include <libtrace.h>
 
 
+#define OPTION_VERBOSE_STATS
 //#define OPTION_HEXDUMP_PACKETS
 
 
@@ -180,10 +181,13 @@ static int pcap_read_libtrace(pcap_t *handle, int max_packets, pcap_handler call
 
         debug("[%s() start] max_packets: %d \n", __func__, max_packets);
 
+	//[pcap_read_libtrace() start] max_packets: -1	- app calls with -1 value
+	//so actually we never exit from this loop in app
         for (n = 1; (n <= max_packets) || (max_packets < 0); n++) 
 	{
 		//trace_read_packet (libtrace_t *trace, libtrace_packet_t *packet)
 		//will block until a packet is read (or EOF is reached).
+		//returns number of bytes read, 0 if EOF, -1 if error.
 		rv = trace_read_packet(p->trace, p->packet);
 		if (rv == 0)
 		{
@@ -198,7 +202,7 @@ static int pcap_read_libtrace(pcap_t *handle, int max_packets, pcap_handler call
 		else
 		{
 #ifdef OPTION_HEXDUMP_PACKETS
-			printf("have a packet %d bytes \n", rv);
+			printf("have a packet at %p with %d bytes\n",p->packet->payload, rv);
 			hexdump(p->packet->payload, rv);
 #endif
 			/* fill out pcap_header */
@@ -206,6 +210,8 @@ static int pcap_read_libtrace(pcap_t *handle, int max_packets, pcap_handler call
 			pcap_header.ts = ts;
 			//Returns pointer to the start of the layer 2 header
 			bp = (u_char *)trace_get_layer2(p->packet, &type, NULL);
+			printf("pointer to a packet by trace_get_layer2() is : %p. orig payload: %p \n",
+				 bp, p->packet->payload);
 			//uint32_t odp_packet_len(odp_packet_t pkt);
 			pcap_header.len = trace_get_capture_length(p->packet);
 			pcap_header.caplen = pcap_header.len;
@@ -237,7 +243,6 @@ static int pcap_setfilter_libtrace(pcap_t *handle, struct bpf_program *filter)
         return 0;
 }
 
-#define VERBOSE_STATS
 
 //#9. pcap_stats
 int pcap_stats_libtrace(pcap_t *handle, struct pcap_stat *ps)
@@ -255,7 +260,7 @@ int pcap_stats_libtrace(pcap_t *handle, struct pcap_stat *ps)
                 ps->ps_drop = (unsigned int)(stat->dropped);
                 ps->ps_ifdrop = (unsigned int)(stat->filtered); //filtered out
 
-#ifdef VERBOSE_STATS
+#ifdef OPTION_VERBOSE_STATS
 		printf("received: %u, dropped: %u, filtered: %u \n", ps->ps_recv, ps->ps_drop, ps->ps_ifdrop);
 #endif
         }
