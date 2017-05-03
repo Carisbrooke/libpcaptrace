@@ -210,12 +210,12 @@ static int pcap_read_libtrace(pcap_t *handle, int max_packets, pcap_handler call
 			pcap_header.ts = ts;
 			//Returns pointer to the start of the layer 2 header
 			bp = (u_char *)trace_get_layer2(p->packet, &type, NULL);
-			printf("pointer to a packet by trace_get_layer2() is : %p. orig payload: %p \n",
-				 bp, p->packet->payload);
 			//uint32_t odp_packet_len(odp_packet_t pkt);
 			pcap_header.len = trace_get_capture_length(p->packet);
 			pcap_header.caplen = pcap_header.len;
 
+			printf("pointer to a packet by trace_get_layer2() is : %p. orig payload: %p, size: %u \n",
+				 bp, p->packet->payload, pcap_header.len);
 			//callback
 			callback(userdata, &pcap_header, bp);
 
