@@ -375,7 +375,7 @@ pcap_t* libtrace_create(const char *device, char *ebuf, int *is_ours)
 		debug("got odp:device \n");
                 handle = pcap_create_common((device), ebuf, 0); 
                 handle->selectable_fd = -1;
-		handle->linktype = LINKTYPE_ETHERNET;	//HACK.
+		handle->linktype = 1;	//HACK. set linktype to ETHERNET
                 ptrace = handle->priv;
         } 
 	else 
