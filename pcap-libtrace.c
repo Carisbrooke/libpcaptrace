@@ -101,6 +101,7 @@ static int pcap_setdirection_libtrace(pcap_t *handle, pcap_direction_t d)
 //#3.
 static int pcap_set_datalink_libtrace(pcap_t *handle, int dlt)
 {
+	debug("pcap_set_datalink_libtrace() setting type: %d\n", dlt);
         handle->linktype = dlt;
         return 0;
 }
@@ -374,6 +375,7 @@ pcap_t* libtrace_create(const char *device, char *ebuf, int *is_ours)
 		debug("got odp:device \n");
                 handle = pcap_create_common((device), ebuf, 0); 
                 handle->selectable_fd = -1;
+		handle->linktype = LINKTYPE_ETHERNET;	//HACK.
                 ptrace = handle->priv;
         } 
 	else 
