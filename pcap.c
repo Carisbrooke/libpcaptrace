@@ -533,12 +533,15 @@ pcap_alloc_pcap_t(char *ebuf, size_t size)
 	return (p);
 }
 
-
-//repu1sion: extended, we parse dev address: "src,dest", before ',' assign to source, after to destination
+//we try to read from env variable with ifaces
+//LIBPCAPTRACE_IFACE=enp3s0,odp:03:00.0
 pcap_t* pcap_create_common(const char *source, char *ebuf, size_t size)
 {
         pcap_t *p;
-	char *delim = "en";
+	char *env;
+	char *delim = ",";
+
+	debug("[%s() start] %s \n", __func__, source);
 
         p = pcap_alloc_pcap_t(ebuf, size);
         if (p == NULL)
@@ -546,38 +549,43 @@ pcap_t* pcap_create_common(const char *source, char *ebuf, size_t size)
 
 //#ifdef PCAP_SUPPORT_LIBTRACE
 
-	debug("[%s() start] %s \n", __func__, source);
-
-	//03:00.0 we have in source as device name
-        if (strstr(source, delim)) 
+	env = getenv("LIBPCAPTRACE_IFACE");
+	if (env)
 	{
-		debug("[%s() ] found delim %s\n", __func__, delim);
+		debug("[%s() ] FOUND env variable LIBPCAPTRACE_IFACE=%s\n", __func__, env);
                 p = pcap_alloc_pcap_t(ebuf, size + sizeof(struct pcap_libtrace));
                 if (p == NULL)
                         return (NULL);
 
-		//HACK: enp3so
- 	        p->opt.source = strdup("enp3s0");
- 	        //p->opt.source = strdup(source);
-                if (p->opt.source == NULL) {
-                        snprintf(ebuf, PCAP_ERRBUF_SIZE, "malloc: %s",
-                                        pcap_strerror(errno));
+		//parsing
+        	if (strstr(env, delim))
+		{
+			p->opt.source = strdup(strtok(env, delim));
+			p->opt.destination = strdup(strtok(NULL, delim));
+		}
+		else
+		{	//default values in case of nothing acceptable found
+ 	        	p->opt.source = strdup("enp3s0");
+                	p->opt.destination = strdup("odp:03:00.0");
+		}
+                if (p->opt.source == NULL)
+		{
+                        snprintf(ebuf, PCAP_ERRBUF_SIZE, "malloc: %s", pcap_strerror(errno));
                         free(p);
                         return (NULL);
                 }
-		//let's store odp part here
-                p->opt.destination = strdup("odp:03:00.0");
-                if (p->opt.destination == NULL) {
-                        snprintf(ebuf, PCAP_ERRBUF_SIZE, "malloc: %s",
-                        pcap_strerror(errno));
+                if (p->opt.destination == NULL)
+		{
+                        snprintf(ebuf, PCAP_ERRBUF_SIZE, "malloc: %s", pcap_strerror(errno));
                         free(p);
                         return (NULL);
                 }
         }
 	else 
 	{
-		debug("[%s() ] NOT found delim %s\n", __func__, delim);
+		debug("[%s() ] NOT found in env var LIBPCAPTRACE_IFACE. please set \n", __func__);
 //#endif
+		//we use original source param only in standard case
                 p->opt.source = strdup(source);
                 if (p->opt.source == NULL) 
 		{
