@@ -49,7 +49,7 @@ extern "C" {
 #include <libtrace.h>
 #endif
 
-#define DEBUG
+//#define DEBUG
 
 #ifdef DEBUG
  #define debug(x...) printf(x)

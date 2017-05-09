@@ -293,7 +293,6 @@ int pcap_activate_libtrace(pcap_t *handle)
 	//HACK
 	device = handle->opt.destination;
 
-
 	//priv is a void* ptr which points to our struct pcap_libtrace
         p->packet = trace_create_packet();
         if (!p->packet)
@@ -310,7 +309,7 @@ int pcap_activate_libtrace(pcap_t *handle)
                 return -1;
         }
         else
-                printf("[%s()]trace created successfully\n",__func__);
+                debug("[%s()]trace created successfully\n",__func__);
 
 	//setting functions
         handle->inject_op = pcap_inject_libtrace;

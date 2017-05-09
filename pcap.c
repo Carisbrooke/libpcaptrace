@@ -892,7 +892,7 @@ pcap_open_offline_common(char *ebuf, size_t size)
 int
 pcap_dispatch(pcap_t *p, int cnt, pcap_handler callback, u_char *user)
 {
-	printf("app calls pcap_dispatch() with ptr: %p, cnt: %d, callback: %p, userdata: %p\n",
+	debug("app calls pcap_dispatch() with ptr: %p, cnt: %d, callback: %p, userdata: %p\n",
 		 p, cnt, callback, user);
 	return (p->read_op(p, cnt, callback, user));
 }
