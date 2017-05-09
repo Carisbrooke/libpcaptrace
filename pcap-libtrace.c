@@ -5,16 +5,15 @@
 #endif
 
 #include <stdlib.h>
+#include <string.h>
 #include <errno.h>
 #include <pcap/pcap.h>
 #include "pcap-int.h"
 #include <libtrace.h>
 
-
+//----- OPTIONS -----
 //#define OPTION_VERBOSE_STATS
 //#define OPTION_HEXDUMP_PACKETS
-
-
 
 //I would just leave it here (copy of internal struct in pcap-linux.c)
 struct pcap_linux {
@@ -44,24 +43,6 @@ struct pcap_linux {
         int packets_left; /* Unhandled packets left within the block from previous call to pcap_read_linux_mmap_v3 in case of TPACKET_V3. */
 #endif
 };
-
-
-//METHODS FROM LIBPCAP (function pointers inside struct pcap) - SHOULD BE 12.
-#if 0
-read_op_t read_op; - Method to call to read packets on a live capture.
-int (*next_packet_op)(pcap_t *, struct pcap_pkthdr *, u_char **); read packets from a savefile.
-typedef int     (*activate_op_t)(pcap_t *);
-typedef int     (*can_set_rfmon_op_t)(pcap_t *);
-typedef int     (*inject_op_t)(pcap_t *, const void *, size_t);
-typedef int     (*setfilter_op_t)(pcap_t *, struct bpf_program *);
-typedef int     (*setdirection_op_t)(pcap_t *, pcap_direction_t);
-typedef int     (*set_datalink_op_t)(pcap_t *, int);
-typedef int     (*getnonblock_op_t)(pcap_t *, char *);
-typedef int     (*setnonblock_op_t)(pcap_t *, int, char *);
-typedef int     (*stats_op_t)(pcap_t *, struct pcap_stat *);
-typedef void    (*cleanup_op_t)(pcap_t *);
-
-#endif
 
 //#1. stub
 static int pcap_inject_libtrace(pcap_t *handle, const void *buf, size_t size)
@@ -356,27 +337,34 @@ int pcap_activate_libtrace(pcap_t *handle)
 	return rv;
 }
 
+//LIBPCAPTRACE_IFACE=enp3s0,odp:03:00.0
+//compare device with first part of env variable. 
 pcap_t* libtrace_create(const char *device, char *ebuf, int *is_ours)
 {
         pcap_t *handle = NULL;
         struct pcap_libtrace *ptrace;
+	char *env;
 
 	debug("[%s() start], device: %s\n", __func__, device);
 
-	//XXX - hack, hardcode
-        *is_ours = (!strncmp(device, "enp3s0", 6));
+	env = getenv("LIBPCAPTRACE_IFACE");
+	if (env)
+	{	//if we found let say enp3s0 in env variable before ','
+		*is_ours = (!strcmp(device, strtok(env, ",")));
+		debug("matching our device [%s] with first half of env variable [%s]. ", device, env);
+		debug("%s\n", *is_ours ? "matched" : "not matched");
+	}
         if (! *is_ours)
                 return NULL;
 
-	//odp:03:00.0 in device
-        if (!strncmp(device, "enp3s0:", 6)) 
+	if (strstr(env, "odp:"))
 	{	//we alloc auto space for pcap_t and pcap_libtrace so lets try with 0 here.
 		debug("got odp:device \n");
                 handle = pcap_create_common((device), ebuf, 0); 
                 handle->selectable_fd = -1;
 		handle->linktype = 1;	//HACK. set linktype to ETHERNET
                 ptrace = handle->priv;
-        } 
+        }
 	else 
 	{
                 handle = pcap_create_common(device, ebuf, sizeof(struct pcap_linux));
