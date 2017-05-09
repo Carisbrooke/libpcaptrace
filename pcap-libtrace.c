@@ -11,7 +11,7 @@
 #include <libtrace.h>
 
 
-#define OPTION_VERBOSE_STATS
+//#define OPTION_VERBOSE_STATS
 //#define OPTION_HEXDUMP_PACKETS
 
 
