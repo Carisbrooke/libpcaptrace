@@ -549,7 +549,8 @@ pcap_t* pcap_create_common(const char *source, char *ebuf, size_t size)
 
 //#ifdef PCAP_SUPPORT_LIBTRACE
 
-	env = getenv("LIBPCAPTRACE_IFACE");
+	//need strdup to avoid breaking environment variable with strtok
+	env = strdup(getenv("LIBPCAPTRACE_IFACE"));
 	if (env)
 	{
 		debug("[%s() ] FOUND env variable LIBPCAPTRACE_IFACE=%s\n", __func__, env);

@@ -348,9 +348,10 @@ pcap_t* libtrace_create(const char *device, char *ebuf, int *is_ours)
 	debug("[%s() start], device: %s\n", __func__, device);
 
 	env = getenv("LIBPCAPTRACE_IFACE");
+	debug("our env var is: [%s]\n", env);
 	if (env)
 	{	//if we found let say enp3s0 in env variable before ','
-		*is_ours = (!strcmp(device, strtok(env, ",")));
+		*is_ours = (!strcmp(device, strtok(strdup(env), ",")));
 		debug("matching our device [%s] with first half of env variable [%s]. ", device, env);
 		debug("%s\n", *is_ours ? "matched" : "not matched");
 	}
