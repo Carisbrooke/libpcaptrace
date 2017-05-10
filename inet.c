@@ -889,13 +889,6 @@ pcap_lookupnet(device, netp, maskp, errbuf)
 
 	debug("[%s() start], device: %s\n", __func__, device);
 
-//repu1sion
-#ifdef PCAP_SUPPORT_LIBTRACE
-       if (!strncmp(device, "trace:", 6))
-               device += 6;
-#endif /* PCAP_SUPPORT_LIBTRACE */
-
-
 	/*
 	 * The pseudo-device "any" listens on all interfaces and therefore
 	 * has the network address and -mask "0.0.0.0" therefore catching

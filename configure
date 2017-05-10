@@ -6137,8 +6137,7 @@ fi
 
 
 if test "$want_libtrace" = yes; then
-
-$as_echo "#define PCAP_SUPPORT_LIBTRACE 1" >>confdefs.h
+       $as_echo "#define PCAP_SUPPORT_LIBTRACE 1" >>confdefs.h
 
 
        LIBS="$LIBS -ltrace"

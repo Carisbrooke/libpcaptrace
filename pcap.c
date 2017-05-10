@@ -314,7 +314,9 @@ struct capture_source_type {
 	int (*findalldevs_op)(pcap_if_t **, char *);
 	pcap_t *(*create_op)(const char *, char *, int *);
 } capture_source_types[] = {
+#ifdef PCAP_SUPPORT_LIBTRACE
         { NULL, libtrace_create },
+#endif
 #ifdef HAVE_DAG_API
 	{ dag_findalldevs, dag_create },
 #endif
@@ -547,7 +549,7 @@ pcap_t* pcap_create_common(const char *source, char *ebuf, size_t size)
         if (p == NULL)
                 return (NULL);
 
-//#ifdef PCAP_SUPPORT_LIBTRACE
+#ifdef PCAP_SUPPORT_LIBTRACE
 
 	//need strdup to avoid breaking environment variable with strtok
 	env = strdup(getenv("LIBPCAPTRACE_IFACE"));
@@ -585,7 +587,7 @@ pcap_t* pcap_create_common(const char *source, char *ebuf, size_t size)
 	else 
 	{
 		debug("[%s() ] NOT found in env var LIBPCAPTRACE_IFACE. please set \n", __func__);
-//#endif
+#endif
 		//we use original source param only in standard case
                 p->opt.source = strdup(source);
                 if (p->opt.source == NULL) 
@@ -594,9 +596,9 @@ pcap_t* pcap_create_common(const char *source, char *ebuf, size_t size)
                         free(p);
                         return (NULL);
                 }
-//#ifdef PCAP_SUPPORT_LIBTRACE
+#ifdef PCAP_SUPPORT_LIBTRACE
         }
-//#endif
+#endif
         /*
          * Default to "can't set rfmon mode"; if it's supported by
          * a platform, the create routine that called us can set
@@ -626,7 +628,6 @@ pcap_t* pcap_create_common(const char *source, char *ebuf, size_t size)
 
         return (p);
 }
-
 
 int
 pcap_check_activated(pcap_t *p)

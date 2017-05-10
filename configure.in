@@ -726,7 +726,7 @@ AC_HELP_STRING([--with-libtrace],[include libtrace support]),
 ])
 
 if test "$want_libtrace" = yes; then
-       AC_DEFINE(PCAP_SUPPORT_LIBTRACE, 1, [target host supports libtrace])
+       AC_DEFINE(PCAP_SUPPORT_LIBTRACE, 1, [support for libtrace])
 
        LIBS="$LIBS -ltrace"
        AC_MSG_NOTICE(LIBTRACE is supported)

@@ -274,6 +274,9 @@
 /* support D-Bus sniffing */
 #undef PCAP_SUPPORT_DBUS
 
+/* support for libtrace */
+#undef PCAP_SUPPORT_LIBTRACE
+
 /* target host supports netfilter sniffing */
 #undef PCAP_SUPPORT_NETFILTER
 

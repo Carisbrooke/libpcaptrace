@@ -40,13 +40,11 @@
 extern "C" {
 #endif
 
-
-//HACK
-#define PCAP_SUPPORT_LIBTRACE 
-
 //repu1sion
 #ifdef PCAP_SUPPORT_LIBTRACE
 #include <libtrace.h>
+#else
+	#error libtrace not supported
 #endif
 
 //#define DEBUG
@@ -124,9 +122,9 @@ extern CRITICAL_SECTION g_PcapCompileCriticalSection;
 
 struct pcap_opt {
 	char	*source;
-//#ifdef PCAP_SUPPORT_LIBTRACE
+#ifdef PCAP_SUPPORT_LIBTRACE
        char    *destination;
-//#endif
+#endif
 	int	timeout;	/* timeout for buffering */
 	int	buffer_size;
 	int	promisc;
@@ -154,8 +152,6 @@ typedef Adapter *(*getadapter_op_t)(pcap_t *);
 #endif
 typedef void	(*cleanup_op_t)(pcap_t *);
 
-
-//repu1sion XXX - we have it declared inside pcap-libtrace.c, get rid of it?
 #ifdef PCAP_SUPPORT_LIBTRACE
 struct pcap_libtrace {
         libtrace_t *trace;
