@@ -46,7 +46,9 @@
 //#define OPTION_VERBOSE_STATS
 //#define OPTION_HEXDUMP_PACKETS
 
-//I would just leave it here (copy of internal struct in pcap-linux.c)
+/*
+ * Private data for capturing on Linux SOCK_PACKET or PF_PACKET sockets.
+ */
 struct pcap_linux {
         u_int   packets_read;   /* count of packets read with recvfrom() */
         long    proc_dropped;   /* packets reported dropped by /proc/net/dev */
@@ -74,77 +76,6 @@ struct pcap_linux {
         int packets_left; /* Unhandled packets left within the block from previous call to pcap_read_linux_mmap_v3 in case of TPACKET_V3. */
 #endif
 };
-
-//#1. stub
-static int pcap_inject_libtrace(pcap_t *handle, const void *buf, size_t size)
-{
-        struct pcap_libtrace *handlep = handle->priv;
-        int rv = 0;
-
-	debug("[%s() start]\n", __func__);
-
-        return rv;
-}
-
-//#2. 
-/* Set direction flag: Which packets do we accept on a forwarding
- * single device? IN, OUT or both? */
-static int pcap_setdirection_libtrace(pcap_t *handle, pcap_direction_t d)
-{
-	debug("[%s() start]\n", __func__);
-
-#ifdef HAVE_PF_PACKET_SOCKETS //XXX - where is it defined?
-        struct pcap_linux *handlep = handle->priv;
-
-        if (!handlep->sock_packet) {
-                handle->direction = d;
-                return 0;
-        }
-#endif
-        /*
-         * We're not using PF_PACKET sockets, so we can't determine
-         * the direction of the packet.
-         */
-        snprintf(handle->errbuf, PCAP_ERRBUF_SIZE,
-            "Setting direction is not supported on SOCK_PACKET sockets");
-        return -1;
-}
-
-//#3.
-static int pcap_set_datalink_libtrace(pcap_t *handle, int dlt)
-{
-	debug("pcap_set_datalink_libtrace() setting type: %d\n", dlt);
-        handle->linktype = dlt;
-        return 0;
-}
-
-//#4. pcap_setnonblock_fd
-
-//#5. pcap_getnonblock_fd
-
-//#6. pcap_cleanup_libtrace
-#if 0
-struct pcap_libtrace {
-        libtrace_t *trace;
-        libtrace_packet_t *packet;
-        libtrace_out_t *trace_out;
-};
-#endif
-
-static void pcap_cleanup_libtrace(pcap_t *handle)
-{
-        debug("[%s() start]\n", __func__);
-
-        struct pcap_libtrace *p = (struct pcap_libtrace *)handle->priv;
-
-        if (p->packet)
-                trace_destroy_packet(p->packet);
-        if (p->trace)
-                trace_destroy(p->trace);
-        free(p);
-
-	pcap_cleanup_live_common(handle);
-}
 
 #ifdef OPTION_HEXDUMP_PACKETS
 void hexdump(void *addr, unsigned int size)
@@ -176,11 +107,62 @@ void hexdump(void *addr, unsigned int size)
 }
 #endif
 
+static int pcap_inject_libtrace(pcap_t *handle, const void *buf, size_t size)
+{
+        struct pcap_libtrace *handlep = handle->priv;
+        int rv = 0;
 
-//#7. read - this should work instead of pcap_dispatch()
-//pcap_dispatch() processes packets from a live capture or ``savefile'' until cnt packets are processed,  the
-//end  of  the current bufferful of packets is reached when doing a live capture, the end of the ``savefile''
-//is reached when reading from a ``savefile'', pcap_breakloop() is called, or an error  occurs.
+	debug("[%s() start]\n", __func__);
+
+        return rv;
+}
+
+/* Set direction flag: Which packets do we accept on a forwarding
+ * single device? IN, OUT or both? */
+static int pcap_setdirection_libtrace(pcap_t *handle, pcap_direction_t d)
+{
+	debug("[%s() start]\n", __func__);
+
+#ifdef HAVE_PF_PACKET_SOCKETS
+        struct pcap_linux *handlep = handle->priv;
+
+        if (!handlep->sock_packet) {
+                handle->direction = d;
+                return 0;
+        }
+#endif
+        /*
+         * We're not using PF_PACKET sockets, so we can't determine
+         * the direction of the packet.
+         */
+        snprintf(handle->errbuf, PCAP_ERRBUF_SIZE,
+            "Setting direction is not supported on SOCK_PACKET sockets");
+        return -1;
+}
+
+static int pcap_set_datalink_libtrace(pcap_t *handle, int dlt)
+{
+	debug("pcap_set_datalink_libtrace() setting type: %d\n", dlt);
+        handle->linktype = dlt;
+        return 0;
+}
+
+static void pcap_cleanup_libtrace(pcap_t *handle)
+{
+        debug("[%s() start]\n", __func__);
+
+        struct pcap_libtrace *p = (struct pcap_libtrace *)handle->priv;
+
+        if (p->packet)
+                trace_destroy_packet(p->packet);
+        if (p->trace)
+                trace_destroy(p->trace);
+        free(p);
+
+	pcap_cleanup_live_common(handle);
+}
+
+//routine which works when pcap_dispatch() called
 static int pcap_read_libtrace(pcap_t *handle, int max_packets, pcap_handler callback, u_char *userdata)
 {
         int rv;
@@ -194,12 +176,9 @@ static int pcap_read_libtrace(pcap_t *handle, int max_packets, pcap_handler call
 
         debug("[%s() start] max_packets: %d \n", __func__, max_packets);
 
-	//[pcap_read_libtrace() start] max_packets: -1	- app calls with -1 value
-	//so actually we never exit from this loop in app
         for (n = 1; (n <= max_packets) || (max_packets < 0); n++) 
 	{
-		//trace_read_packet (libtrace_t *trace, libtrace_packet_t *packet)
-		//will block until a packet is read (or EOF is reached).
+		//will block until a packet will be read (or EOF is reached).
 		//returns number of bytes read, 0 if EOF, -1 if error.
 		rv = trace_read_packet(p->trace, p->packet);
 		if (rv == 0)
@@ -223,16 +202,13 @@ static int pcap_read_libtrace(pcap_t *handle, int max_packets, pcap_handler call
 			pcap_header.ts = ts;
 			//Returns pointer to the start of the layer 2 header
 			bp = (u_char *)trace_get_layer2(p->packet, &type, NULL);
-			//uint32_t odp_packet_len(odp_packet_t pkt);
 			pcap_header.len = trace_get_capture_length(p->packet);
 			pcap_header.caplen = pcap_header.len;
 
 			/*printf("pointer to a packet by trace_get_layer2() is : %p. orig payload: %p, size: %u \n",
 				 bp, p->packet->payload, pcap_header.len);*/
-			//callback
 			callback(userdata, &pcap_header, bp);
 
-			//increase counters
 			processed_packets++;
 
 			//check did we receive a notice from pcap_breakloop()
@@ -248,16 +224,13 @@ static int pcap_read_libtrace(pcap_t *handle, int max_packets, pcap_handler call
 	return processed_packets;
 }
 
-
-//#8. pcap_setfilter
 static int pcap_setfilter_libtrace(pcap_t *handle, struct bpf_program *filter)
 {
+        debug("[%s() start]\n", __func__);
 
         return 0;
 }
 
-
-//#9. pcap_stats
 int pcap_stats_libtrace(pcap_t *handle, struct pcap_stat *ps)
 {
         debug("[%s() start]\n", __func__);
@@ -301,8 +274,6 @@ int pcap_activate_libtrace(pcap_t *handle)
 	else
 		activated = 1;
 
-	//have "odp:03:00.0"
-	//HACK
 	device = handle->opt.destination;
 
 	//priv is a void* ptr which points to our struct pcap_libtrace
@@ -334,21 +305,6 @@ int pcap_activate_libtrace(pcap_t *handle)
         handle->setfilter_op = pcap_setfilter_libtrace;
         handle->stats_op = pcap_stats_libtrace;
 
-#if 0
-	//check this later
-        if (handle->opt.buffer_size != 0) 
-	{
-                //set the socket buffer size to the specified value.
-                if (setsockopt(handle->fd, SOL_SOCKET, SO_RCVBUF, &handle->opt.buffer_size,
-                    sizeof(handle->opt.buffer_size)) == -1) 
-		{
-                        snprintf(handle->errbuf, PCAP_ERRBUF_SIZE, "SO_RCVBUF: %s", pcap_strerror(errno));
-                        rv = PCAP_ERROR;
-			return rv;
-                }
-        }
-#endif
-
         handle->buffer = malloc(handle->bufsize + handle->offset);
         if (!handle->buffer) 
 	{
@@ -368,8 +324,7 @@ int pcap_activate_libtrace(pcap_t *handle)
 	return rv;
 }
 
-//LIBPCAPTRACE_IFACE=enp3s0,odp:03:00.0
-//compare device with first part of env variable. 
+//env var should be in form: LIBPCAPTRACE_IFACE=enp3s0,odp:03:00.0
 pcap_t* libtrace_create(const char *device, char *ebuf, int *is_ours)
 {
         pcap_t *handle = NULL;
@@ -394,7 +349,7 @@ pcap_t* libtrace_create(const char *device, char *ebuf, int *is_ours)
 		debug("got odp:device \n");
                 handle = pcap_create_common((device), ebuf, 0); 
                 handle->selectable_fd = -1;
-		handle->linktype = 1;	//HACK. set linktype to ETHERNET
+		handle->linktype = 1;	//set linktype to ETHERNET
                 ptrace = handle->priv;
         }
 	else 
