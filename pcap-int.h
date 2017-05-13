@@ -1,6 +1,8 @@
 /*
  * Copyright (c) 1994, 1995, 1996
  *	The Regents of the University of California.  All rights reserved.
+ * Copyright (c) 2017 Intelligent Compute LTD
+ * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -29,6 +31,9 @@
  * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
+ *
+ * libtrace support implementation for linux platform
+ * by Andrii Guriev <bearrailgun@gmail.com>
  */
 
 #ifndef pcap_int_h
@@ -40,7 +45,6 @@
 extern "C" {
 #endif
 
-//repu1sion
 #ifdef PCAP_SUPPORT_LIBTRACE
 #include <libtrace.h>
 #else

@@ -3,7 +3,8 @@
  *
  *  Copyright (c) 2000 Torsten Landschoff <torsten@debian.org>
  *  		       Sebastian Krahmer  <krahmer@cs.uni-potsdam.de>
- *
+ * Copyright (c) 2017 Intelligent Compute LTD
+ * All rights reserved.
  *  License: BSD
  *
  *  Redistribution and use in source and binary forms, with or without
@@ -65,6 +66,9 @@
  * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
+ *
+ * libtrace support implementation for linux platform
+ * by Andrii Guriev <bearrailgun@gmail.com>
  */
 
 /*
