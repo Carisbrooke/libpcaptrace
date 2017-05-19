@@ -197,6 +197,22 @@ static int pcap_read_libtrace(pcap_t *handle, int max_packets, pcap_handler call
 			printf("have a packet at %p with %d bytes\n",p->packet->payload, rv);
 			hexdump(p->packet->payload, rv);
 #endif
+			//filtering
+			if (p->filter)
+			{
+				rv = trace_apply_filter(p->filter, p->packet);
+				if (rv == -1)
+				{
+					printf("error applying filter\n");
+					rv = -1; return rv;
+				}
+				else if (rv == 0)
+				{
+					debug("packet didn't match the filter. skipping\n");
+					continue;
+				}
+			}
+
 			/* fill out pcap_header */
 			gettimeofday(&ts, NULL);
 			pcap_header.ts = ts;
@@ -226,18 +242,30 @@ static int pcap_read_libtrace(pcap_t *handle, int max_packets, pcap_handler call
 
 static int pcap_setfilter_libtrace(pcap_t *handle, struct bpf_program *filter)
 {
+	libtrace_filter_t* tracefilter;
+	struct pcap_libtrace *p = handle->priv;
+
         debug("[%s() start]\n", __func__);
+
+	tracefilter = trace_create_filter_from_bytecode(filter->bf_insns, filter->bf_len);
+	if (!tracefilter)
+		return -1;
+	else
+	{
+		p->filter = tracefilter; //saved filter to our struct
+		debug("[%s() ] filter set and saved successfully\n", __func__);
+	}
 
         return 0;
 }
 
 int pcap_stats_libtrace(pcap_t *handle, struct pcap_stat *ps)
 {
-        debug("[%s() start]\n", __func__);
-
         int rv = 0;
 	struct pcap_libtrace *p = handle->priv;
         libtrace_stat_t *stat;
+
+        debug("[%s() start]\n", __func__);
 
         stat = trace_get_statistics(p->trace, NULL);
         if (stat)

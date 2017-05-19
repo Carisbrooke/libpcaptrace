@@ -160,6 +160,7 @@ typedef void	(*cleanup_op_t)(pcap_t *);
 struct pcap_libtrace {
         libtrace_t *trace;
         libtrace_packet_t *packet;
+	libtrace_filter_t *filter;
         libtrace_out_t *trace_out;
 };
 #endif /* PCAP_SUPPORT_LIBTRACE */
