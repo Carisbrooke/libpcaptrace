@@ -162,6 +162,8 @@ struct pcap_libtrace {
         libtrace_packet_t *packet;
 	libtrace_filter_t *filter;
         libtrace_out_t *trace_out;
+	unsigned int accepted_pkts;
+	unsigned int filtered_pkts;
 };
 #endif /* PCAP_SUPPORT_LIBTRACE */
 

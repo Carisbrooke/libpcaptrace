@@ -208,6 +208,7 @@ static int pcap_read_libtrace(pcap_t *handle, int max_packets, pcap_handler call
 				}
 				else if (rv == 0)
 				{
+					p->filtered_pkts++; //increase counter of filtered out packets
 					debug("packet didn't match the filter. skipping\n");
 					continue;
 				}
@@ -225,7 +226,7 @@ static int pcap_read_libtrace(pcap_t *handle, int max_packets, pcap_handler call
 				 bp, p->packet->payload, pcap_header.len);*/
 			callback(userdata, &pcap_header, bp);
 
-			processed_packets++;
+			p->accepted_pkts++;
 
 			//check did we receive a notice from pcap_breakloop()
 			if (handle->break_loop) 
@@ -270,11 +271,21 @@ int pcap_stats_libtrace(pcap_t *handle, struct pcap_stat *ps)
         stat = trace_get_statistics(p->trace, NULL);
         if (stat)
         {
-                ps->ps_recv = (unsigned int)(stat->received);
-                ps->ps_drop = (unsigned int)(stat->dropped);
-                ps->ps_ifdrop = (unsigned int)(stat->filtered); //filtered out
+                ps->ps_recv = p->accepted_pkts;   		//yes, we provide counter of accepted packets here
+                //ps->ps_recv = (unsigned int)(stat->accepted); //orig libtrace stats
+                ps->ps_drop = (unsigned int)(stat->dropped);    //dropped because lack of buffer space
+                ps->ps_ifdrop = p->filtered_pkts; 		//filtered out packets
 
 #ifdef OPTION_VERBOSE_STATS
+/*
+ * original libtrace stats
+		printf("accepted: %u \t", stat->accepted);
+		printf("filtered: %u \t", stat->filtered);
+		printf("received: %u \t", stat->received);
+		printf("dropped: %u \t", stat->dropped);
+		printf("captured: %u \n", stat->captured);
+*/
+		//our converted stats
 		printf("received: %u, dropped: %u, filtered: %u \n", ps->ps_recv, ps->ps_drop, ps->ps_ifdrop);
 #endif
         }
