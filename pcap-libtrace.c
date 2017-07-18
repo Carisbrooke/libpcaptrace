@@ -391,6 +391,14 @@ pcap_t* libtrace_create(const char *device, char *ebuf, int *is_ours)
 		handle->linktype = 1;	//set linktype to ETHERNET
                 ptrace = handle->priv;
         }
+	else if (strstr(env, "kafka:"))
+	{
+		debug("got kafka:device \n");
+                handle = pcap_create_common((device), ebuf, 0);
+                handle->selectable_fd = -1;
+		handle->linktype = 1;	//set linktype to ETHERNET
+                ptrace = handle->priv;
+	}
 	else 
 	{
                 handle = pcap_create_common(device, ebuf, sizeof(struct pcap_linux));
