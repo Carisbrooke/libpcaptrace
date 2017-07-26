@@ -800,9 +800,9 @@ pcap_activate(pcap_t *p)
 	 */
 	if (pcap_check_activated(p))
 		return (PCAP_ERROR_ACTIVATED);
-	debug("[%s() start] 1\n", __func__);
+	debug("[%s() start] before activate_op call\n", __func__);
 	status = p->activate_op(p);
-	debug("[%s() start] 2\n", __func__);
+	debug("[%s() start] after activate_op call\n", __func__);
 	if (status >= 0)
 		p->activated = 1;
 	else {

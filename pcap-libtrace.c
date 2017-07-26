@@ -153,13 +153,19 @@ static void pcap_cleanup_libtrace(pcap_t *handle)
 
         struct pcap_libtrace *p = (struct pcap_libtrace *)handle->priv;
 
-        if (p->packet)
-                trace_destroy_packet(p->packet);
-        if (p->trace)
-                trace_destroy(p->trace);
-        free(p);
+	if (p)
+	{
+		if (p->packet)
+			trace_destroy_packet(p->packet);
+		if (p->trace)
+			trace_destroy(p->trace);
+		free(p);
+	}
 
-	pcap_cleanup_live_common(handle);
+	if (handle)
+		pcap_cleanup_live_common(handle);
+
+        debug("[%s() end]\n", __func__);
 }
 
 //routine which works when pcap_dispatch() called
@@ -331,7 +337,9 @@ int pcap_activate_libtrace(pcap_t *handle)
                 return -1;
         }
         else
-                debug("[%s()]trace created successfully\n",__func__);
+	{
+                debug("[%s()] trace created successfully\n", __func__);
+	}
 
 	//setting functions
         handle->inject_op = pcap_inject_libtrace;
