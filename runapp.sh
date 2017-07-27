@@ -1,6 +1,6 @@
 #!/bin/bash
 
-IFACE="enp3s0"
+IFACE="enp5s0f0"
 
 if [ $# -eq 1 ]; then
 	IFACE=$1
@@ -8,8 +8,8 @@ fi
 
 #make && sudo ldconfig $PWD
 
-#export LIBPCAPTRACE_IFACE="enp3s0,odp:03:00.0"
-export LIBPCAPTRACE_IFACE="enp3s0,kafka:k"
+#export LIBPCAPTRACE_IFACE="enp5s0f0,odp:03:00.0"
+export LIBPCAPTRACE_IFACE="enp5s0f0,kafka:k"
 
 sudo ldconfig $PWD
 if [ -e ptm ]; then

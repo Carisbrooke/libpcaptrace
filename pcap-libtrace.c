@@ -159,7 +159,7 @@ static void pcap_cleanup_libtrace(pcap_t *handle)
 			trace_destroy_packet(p->packet);
 		if (p->trace)
 			trace_destroy(p->trace);
-		free(p);
+		//Never try to free p! It points to internal part of allocated chunk!
 	}
 
 	if (handle)

@@ -1947,6 +1947,7 @@ pcap_inject(pcap_t *p, const void *buf, size_t size)
 void
 pcap_close(pcap_t *p)
 {
+	debug("pcap_close()\n");
 	if (p->opt.source != NULL)
 		free(p->opt.source);
 	p->cleanup_op(p);

@@ -269,6 +269,7 @@ add_or_find_if(pcap_if_t **curdev_ret, pcap_if_t **alldevs, const char *name,
 		/* Small snaplen, so we don't try to allocate much memory. */
 		pcap_set_snaplen(p, 68);
 		ret = pcap_activate(p);
+		debug("closing after activation\n");
 		pcap_close(p);
 		switch (ret) {
 
