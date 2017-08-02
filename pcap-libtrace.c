@@ -233,6 +233,7 @@ static int pcap_read_libtrace(pcap_t *handle, int max_packets, pcap_handler call
 			callback(userdata, &pcap_header, bp);
 
 			p->accepted_pkts++;
+			processed_packets++;
 
 			//check did we receive a notice from pcap_breakloop()
 			if (handle->break_loop) 
